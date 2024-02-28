@@ -2,6 +2,8 @@ import pygame
 import random
 import sys
 
+from pygame.locals import JOYHATMOTION
+
 pygame.init()
 
 WHITE = (255, 255, 255)
@@ -13,6 +15,7 @@ SCREEN_HEIGHT = 600
 
 CELL_SIZE = 20
 SNAKE_SPEED = 10
+SNAKE_INIT_SIZE = 5
 
 
 def quit_game():
@@ -22,7 +25,7 @@ def quit_game():
 
 class Snake:
     def __init__(self):
-        self.length = 5
+        self.length = SNAKE_INIT_SIZE
         self.positions = [((SCREEN_WIDTH / 2), (SCREEN_HEIGHT / 2))]
         self.direction = random.choice([UP, DOWN, LEFT, RIGHT])
         self.color = GREEN
@@ -48,7 +51,7 @@ class Snake:
                 self.positions.pop()
 
     def reset(self):
-        self.length = 1
+        self.length = SNAKE_INIT_SIZE
         self.positions = [((SCREEN_WIDTH / 2), (SCREEN_HEIGHT / 2))]
         self.direction = random.choice([UP, DOWN, LEFT, RIGHT])
 
@@ -73,6 +76,15 @@ class Snake:
                     self.turn(RIGHT)
                 elif event.key == pygame.K_ESCAPE:
                     main_menu()
+            elif event.type == JOYHATMOTION:
+                if event.value == LEFT:  # left
+                    self.turn(LEFT)
+                elif event.value == RIGHT:  # right
+                    self.turn(RIGHT)
+                elif event.value == (0, 1):  # up
+                    self.turn(UP)
+                elif event.value == (0, -1):  # down
+                    self.turn(DOWN)
 
 
 UP = (0, -1)
@@ -89,7 +101,7 @@ def game():
 
     # Initialisation du jeu
     snake = Snake()
-    food = Food()
+    food = Food(snake)
 
     # Boucle de jeu
     while True:
@@ -99,7 +111,8 @@ def game():
 
         if snake.get_head_position() == food.position:
             snake.length += 1
-            food.randomize_position()
+            while snake.get_head_position() == food.position:
+                food.randomize_position()
 
         screen.fill(BLACK)
         snake.draw(screen)
@@ -110,10 +123,12 @@ def game():
 
 
 class Food:
-    def __init__(self):
+    def __init__(self, snake):
         self.position = (0, 0)
         self.color = WHITE
         self.randomize_position()
+        while snake.get_head_position() == self.position:
+            self.randomize_position()
 
     def randomize_position(self):
         self.position = (random.randint(0, (SCREEN_WIDTH // CELL_SIZE)) * CELL_SIZE,
@@ -136,6 +151,10 @@ def main_menu():
     button_exit = pygame.Rect(button_left, button_top + 200, button_width, button_height)
     buttons.append((button_play, (0, 0, 155)))
     buttons.append((button_exit, (155, 0, 0)))
+    pygame.joystick.init()
+    if pygame.joystick.get_count() > 0:
+        joystick = pygame.joystick.Joystick(0)
+        joystick.init()
 
     while True:
         screen.fill(BLACK)
