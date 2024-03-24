@@ -1,6 +1,7 @@
 import pygame
 import random
 import sys
+import asyncio
 
 from pygame.locals import JOYHATMOTION
 
@@ -96,7 +97,7 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 font_small = pygame.font.Font(None, 36)
 
 
-def game():
+async def game():
     pygame.display.set_caption('Snake Game')
 
     # Initialisation du jeu
@@ -118,7 +119,7 @@ def game():
         snake.draw(screen)
         food.draw(screen)
         pygame.display.update()
-
+        await asyncio.sleep(0)
         pygame.time.Clock().tick(SNAKE_SPEED)
 
 
@@ -140,7 +141,7 @@ class Food:
         pygame.draw.rect(surface, BLACK, r, 1)
 
 
-def main_menu():
+async def main_menu():
     clock = pygame.time.Clock()
     buttons = []
     button_width = 200
@@ -176,17 +177,18 @@ def main_menu():
                 quit_game()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if button_play.collidepoint(mx, my):
-                    game()
+                    await game()
                 if button_exit.collidepoint(mx, my):
                     quit_game()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     quit_game()
                 if event.key == pygame.K_g:
-                    game()
+                    await game()
         pygame.display.update()
         clock.tick(60)
+        await asyncio.sleep(0)
 
 
 if __name__ == "__main__":
-    main_menu()
+    asyncio.run(main_menu())
